@@ -1,27 +1,18 @@
-import os, errno
+import os
+import errno
+import stat
 import pyinotify
 
 # class that contains methods of events
 class EventHandler(pyinotify.ProcessEvent):
 	def process_IN_CREATE(self, event):
-		# testing purpose rn
-		print("Something was created")
-
-		# splitting path to get only name (might not need)
-		name = event.pathname.split('/')
-		name = name[-1]
-		print("File or dir name: ", name)
-
 		# checking if file type is .txt or if it is a dir
 		if os.path.isdir(event.pathname):
-			print("directory")
 			# will create dir in hidden dir
 			try:
 				dir = event.pathname.replace(watched_dir, watched_dir_hidden)
-				print("new hidden dir: ", dir)
 				os.makedirs(dir)
 			except:
-				print("already exists")
 				pass
 
 		if os.path.isfile(event.pathname):
@@ -31,9 +22,18 @@ class EventHandler(pyinotify.ProcessEvent):
 				print("will create journal")
 				journal = event.pathname.replace(watched_dir, watched_dir_hidden)
 				journal = journal.replace(".txt", "-journal.txt")
-				f = open(journal, "a+")
-				f.write(name + "\n")
-				f.close()
+				#f = open(journal, "a+")
+
+				# setting the metadata in variables first
+				# filename
+				name = event.pathname.split('/')
+				name = name[-1]
+
+				# inode number
+				inode = os.lstat(event.pathname)[stat.ST_INO]
+
+				#f.write(name + "\n")
+				#f.close()
 
 # the watched events (for now)
 mask = pyinotify.IN_CREATE
@@ -50,7 +50,6 @@ watched_dir_hidden = "/home/coco/.watched_dir_hidden"
 try:
 	os.makedirs(watched_dir_hidden)
 except:
-	print("already exists")
 	pass
 
 # creating the notifier object
