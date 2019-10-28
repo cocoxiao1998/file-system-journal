@@ -19,18 +19,20 @@ class EventHandler(pyinotify.ProcessEvent):
 			print("checking if file ends in txt: ", event.pathname[-4:])
 			if event.pathname[-4:] == ".txt":
 				# will create a journal in the hidden dir
-				print("will create journal")
 				journal = event.pathname.replace(watched_dir, watched_dir_hidden)
 				journal = journal.replace(".txt", "-journal.txt")
 				#f = open(journal, "a+")
 
 				# setting the metadata in variables first
 				# filename
-				name = event.pathname.split('/')
-				name = name[-1]
+				name = os.path.basename(event.pathname)
 
 				# inode number
 				inode = os.lstat(event.pathname)[stat.ST_INO]
+
+				# permissions
+				permissions = os.stat(event.pathname)[stat.ST_MODE]
+				permissions = oct(permissions)[-3:]
 
 				#f.write(name + "\n")
 				#f.close()
