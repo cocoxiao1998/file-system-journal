@@ -2,6 +2,7 @@ import os
 import errno
 import stat
 import pyinotify
+import time
 
 # class that contains methods of events
 class EventHandler(pyinotify.ProcessEvent):
@@ -33,6 +34,12 @@ class EventHandler(pyinotify.ProcessEvent):
 				# permissions
 				permissions = os.stat(event.pathname)[stat.ST_MODE]
 				permissions = oct(permissions)[-3:]
+
+				# timestamp
+				timestamp = time.ctime(os.path.getctime(event.pathname))
+
+				# change: will create hidden file in dir and
+				#			will set the changes to "1 ... +"
 
 				#f.write(name + "\n")
 				#f.close()
