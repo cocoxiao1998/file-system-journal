@@ -8,28 +8,29 @@ import time
 class EventHandler(pyinotify.ProcessEvent):
 	def process_IN_CREATE(self, event):
 		# checking if file type is .txt or if it is a dir
-		if os.path.isdir(event.pathname):
+		#if os.path.isdir(event.pathname):
 			# will create dir in hidden dir
-			try:
-				dir = event.pathname.replace(watched_dir, watched_dir_hidden)
-				os.makedirs(dir)
-			except:
-				pass
+		#	try:
+		#		dir = event.pathname.replace(watched_dir, watched_dir_hidden)
+		#		os.makedirs(dir)
 
+		#	except:
+		#		pass
+
+		# check if whatever is created is  a file, and then a text file
 		if os.path.isfile(event.pathname):
-			print("checking if file ends in txt: ", event.pathname[-4:])
 			if event.pathname[-4:] == ".txt":
 				# will create a journal in the hidden dir
 				journal = event.pathname.replace(watched_dir, watched_dir_hidden)
 				journal = journal.replace(".txt", "-journal.txt")
-				#f = open(journal, "a+")
+				f = open(journal, "a+")
 
 				# setting the metadata in variables first
-				# filename
-				name = os.path.basename(event.pathname)
-
 				# inode number
 				inode = os.lstat(event.pathname)[stat.ST_INO]
+
+				# filename
+				name = os.path.basename(event.pathname)
 
 				# permissions
 				permissions = os.stat(event.pathname)[stat.ST_MODE]
@@ -39,10 +40,18 @@ class EventHandler(pyinotify.ProcessEvent):
 				timestamp = time.ctime(os.path.getctime(event.pathname))
 
 				# change: will create hidden file in dir and
-				#			will set the changes to "1 ... +"
+				#		  will set the changes to "line #, +/-, content"
+				change = "(1 + '')"
 
-				#f.write(name + "\n")
-				#f.close()
+				# will create the empty hidden file
+				hidden_file = event.pathname.replace(watched_dir, watched_dir_hidden)
+				hidden_file = hidden_file.replace(".txt", "-hidden-file.txt")
+				h = open(hidden_file, "a+")
+				h.close()
+
+				# writing to journal now
+				f.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + change + "\n")
+				f.close()
 
 # the watched events (for now)
 mask = pyinotify.IN_CREATE
