@@ -7,15 +7,6 @@ import time
 # class that contains methods of events
 class EventHandler(pyinotify.ProcessEvent):
 	def process_IN_CREATE(self, event):
-		# checking if file type is .txt or if it is a dir
-		#if os.path.isdir(event.pathname):
-			# will create dir in hidden dir
-		#	try:
-		#		dir = event.pathname.replace(watched_dir, watched_dir_hidden)
-		#		os.makedirs(dir)
-
-		#	except:
-		#		pass
 
 		# check if whatever is created is  a file, and then a text file
 		if os.path.isfile(event.pathname):
@@ -39,8 +30,7 @@ class EventHandler(pyinotify.ProcessEvent):
 				# timestamp
 				timestamp = time.ctime(os.path.getctime(event.pathname))
 
-				# change: will create hidden file in dir and
-				#		  will set the changes to "line #, +/-, content"
+				# change: will set the changes to "line #, +/-, content"
 				change = "(1 + '')"
 
 				# will create the empty hidden file
