@@ -12,10 +12,6 @@ class EventHandler(pyinotify.ProcessEvent):
 		# check if whatever is created is  a file, and then a text file
 		if os.path.isfile(event.pathname):
 			if event.pathname[-4:] == ".txt":
-				# will create a journal in the hidden dir
-				journal = event.pathname.replace(watched_dir, watched_dir_hidden)
-				journal = journal.replace(".txt", "-journal.txt")
-				f = open(journal, "a+")
 				
 				# setting the metadata in variables first
 				# inode number
@@ -40,17 +36,23 @@ class EventHandler(pyinotify.ProcessEvent):
 				h = open(hidden_file, "a+")
 				h.close()
 
+				# will create a journal in the hidden dir
+				journal = event.pathname.replace(watched_dir, watched_dir_hidden)
+				journal = journal.replace(".txt", "-journal.txt")
+				j = open(journal, "a+")
+
 				# writing to journal now
-				f.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + change + "\n")
-				f.close()
+				j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + change + "\n")
+				j.close()
+
 	def process_IN_DELETE(self, event): #if any file or folder within the directory is observed being deleted
-		
+
 		#get name of file and extension just deleted
 		name = os.path.basename(event.pathname)
 
 		#if the filename is of the .txt extension
 		if name[-4:] == ".txt":
-			
+
 			#editing the hidden file... more to be done on this later
 			#BELOW MUST BE UPDATED UPON IMP OF THE SAME METHODS IN ON_CREATE HIDDEN_FILE CREATION
 			hidden_file = event.pathname.replace(watched_dir, watched_dir_hidden)
@@ -71,7 +73,7 @@ class EventHandler(pyinotify.ProcessEvent):
 			node = contents.split(' ',1)[0] #extracts the inode id of the file just deleted
 			permissions = contents.split(' ', 3)[2] #extracts the permissions of the file just deleted
 			now = datetime.datetime.now() #records current time to variable
-			
+
 			#formatting the day to not contain a zero if the day is a single digit
 			#please watch this part of the code
 			day = now.strftime("%d")
