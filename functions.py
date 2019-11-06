@@ -31,9 +31,16 @@ class EventHandler(pyinotify.ProcessEvent):
 				change = "(1 + '')"
 
 				# will create the empty hidden file
+				#get new file name path for copying contents to new hidden file
+				filePath = event.pathname
+				fileName = open(filePath)
+				#making the hidden file
 				hidden_file = event.pathname.replace(watched_dir, watched_dir_hidden)
 				hidden_file = hidden_file.replace(".txt", "-hidden-file.txt")
 				h = open(hidden_file, "a+")
+				#reading the lines from the actual file to the new hidden file
+				h.writelines(fileName.readlines())
+				fileName.close()
 				h.close()
 
 				# will create a journal in the hidden dir
@@ -53,13 +60,12 @@ class EventHandler(pyinotify.ProcessEvent):
 		#if the filename is of the .txt extension
 		if name[-4:] == ".txt":
 
-			#editing the hidden file... more to be done on this later
-			#BELOW MUST BE UPDATED UPON IMP OF THE SAME METHODS IN ON_CREATE HIDDEN_FILE CREATION
+			#deleting the hidden file to allow proper reuse of the filename
 			hidden_file = event.pathname.replace(watched_dir, watched_dir_hidden)
 			hidden_file = hidden_file.replace(".txt", "-hidden-file.txt")
-			h = open(hidden_file, "a+")
-			h.close()
-			#ABOVE MUST BE UPDATED UPON IMP OF THE SAME METHODS IN ON_CREATE HIDDEN_FILE CREATION
+			#remove the hidden file
+			os.remove(hidden_file)
+			
 
 			#from original ON_CREATE allowing user to open the filename-journal.txt to show changes
 			#journal = event.pathname.replace(watched_dir, watched_dir_hidden)
