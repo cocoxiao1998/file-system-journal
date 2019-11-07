@@ -99,6 +99,72 @@ class EventHandler(pyinotify.ProcessEvent):
 			#close the file
 			f.close()
 
+		def process_IN_MODIFY(self, event):
+			# check that it is a text file that is being modified
+			if os.path.isfile(event.pathname):
+				if event.pathname[-4:] == ".txt":
+					# setting the metadata in variables first
+					# inode number
+					inode = os.lstat(event.pathname)[stat.ST_INO]
+
+					# filename
+					name = os.path.basename(event.pathname)
+
+					# permissions
+					permissions = os.stat(event.pathname)[stat.ST_MODE]
+					permissions = oct(permissions)[-3:]
+
+					# timestamp
+					timestamp = time.ctime(os.path.getmtime(event.pathname))
+
+
+					# getting changes
+					# opening files
+					file = event.pathname
+					f = open(file, "r")
+
+					hidden_file = event.pathname.replace(watched_dir, watched_dir_hidden)
+					hidden_file = hidden_file.replace(".txt", "-hidden-file.txt")
+					h = open(hidden_file, "r")
+
+					journal = event.pathname.replace(watched_dir, watched_dir_hidden)
+					journal = journal.replace(".txt", "-journal.txt")
+					j = open(journal, "a+")
+
+					text1 = f.readlines()
+					text2 = h.readlines()
+
+					# comparing file text. "-" for unique to sequence 1
+					d = difflib.Differ()
+					diff = list(d.compare(text1, text2))
+					diff = [line.rstrip("\n") for line in diff]
+
+					line_num = 1
+					for line in diff:
+						operator = line[0]
+						# checking if line is unique to file being modified
+						if operator == "-":
+
+							# journal entry: removing an adding a line
+							line = line[2:]
+							print("line: ", line)
+							remove_change = "(" + str(line_num) + " - " + ")"
+							j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + remove_change + "\n")
+							add_change = "(" + str(line_num) + " + '" + line + "')"
+							j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + add_change + "\n")
+
+						line_num += 1
+						print("Differences: ", line)
+
+					# closing files
+					f.close()
+					h.close()
+					j.close()
+
+					# updating hidden file
+
+
+
 # the watched events (for now), add each event as you work on it
 mask = pyinotify.IN_CREATE | pyinotify.IN_MODIFY
 
