@@ -89,13 +89,14 @@ class EventHandler(pyinotify.ProcessEvent):
 					operator = line[0]
 					# checking if line is unique to file being modified
 					if operator == "-":
-						# journal entry: removing a line
-						change = "(" + str(line_num) + " - '" + "')" 
 
-						# journal entry: adding a line
+						# journal entry: removing an adding a line
 						line = line[2:]
-						change = "(" + str(line_num) + " + '" + line + "')"
-						j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + change + "\n")
+						print("line: ", line)
+						remove_change = "(" + str(line_num) + " - " + ")"
+						j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + remove_change + "\n")
+						add_change = "(" + str(line_num) + " + '" + line + "')"
+						j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + add_change + "\n")
 
 					line_num += 1
 					print("Differences: ", line)
