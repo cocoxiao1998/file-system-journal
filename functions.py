@@ -12,7 +12,7 @@ class EventHandler(pyinotify.ProcessEvent):
 		# check if whatever is created is  a file, and then a text file
 		if os.path.isfile(event.pathname):
 			if event.pathname[-4:] == ".txt":
-				
+
 				# setting the metadata in variables first
 				# inode number
 				inode = os.lstat(event.pathname)[stat.ST_INO]
@@ -27,22 +27,32 @@ class EventHandler(pyinotify.ProcessEvent):
 				# timestamp
 				timestamp = time.ctime(os.path.getctime(event.pathname))
 
-				# change: will set the changes to "line #, +/-, content"
-				change = "(1 + '')"
+				# getting change: will set the changes to "line #, +/-, content"
+				file = event.pathname
+				f = open(file, "r")
 
-				# will create the empty hidden file
+				change = f.readlines()
+				change = [line.rstrip("\n") for line in change]
+
+				f.close()
+
+				# creating hidden file and journal in hidden dir (if not created)
+				# and appending changes to them
 				hidden_file = event.pathname.replace(watched_dir, watched_dir_hidden)
 				hidden_file = hidden_file.replace(".txt", "-hidden-file.txt")
-				h = open(hidden_file, "a+")
+				h = open(hidden_file, "w")
+
+				for line in change:
+					h.write(line + "\n")
 				h.close()
 
-				# will create a journal in the hidden dir
 				journal = event.pathname.replace(watched_dir, watched_dir_hidden)
 				journal = journal.replace(".txt", "-journal.txt")
 				j = open(journal, "a+")
 
-				# writing to journal now
-				j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + change + "\n")
+				j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " (CREATED)\n")
+				for line in change:
+					j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " ('" + line + "')\n")
 				j.close()
 
 	def process_IN_DELETE(self, event): #if any file or folder within the directory is observed being deleted
@@ -62,8 +72,7 @@ class EventHandler(pyinotify.ProcessEvent):
 			#ABOVE MUST BE UPDATED UPON IMP OF THE SAME METHODS IN ON_CREATE HIDDEN_FILE CREATION
 
 			#from original ON_CREATE allowing user to open the filename-journal.txt to show changes
-			#journal = event.pathname.replace(watched_dir, watched_dir_hidden)
-			journal = watched_dir + "/.watched_dir_hidden/" + name
+			journal = event.pathname.replace(watched_dir, watched_dir_hidden)
 			journal = journal.replace(".txt", "-journal.txt")
 
 			#open file journal explicitly for reading
@@ -100,11 +109,11 @@ mask = pyinotify.IN_CREATE | pyinotify.IN_DELETE
 wm = pyinotify.WatchManager()
 
 # adding the directory that will be watched and the watched events
-watched_dir = os.path.abspath("/home/peter/Desktop/TEST")
+watched_dir = os.path.abspath("/home/coco/watched_dir")
 wm.add_watch(watched_dir, mask)
 
 # creating hidden dir with same path as watched dir
-watched_dir_hidden = "/home/peter/Desktop/TEST/.watched_dir_hidden"
+watched_dir_hidden = "/home/coco/.watched_dir_hidden"
 try:
 	os.makedirs(watched_dir_hidden)
 except:
