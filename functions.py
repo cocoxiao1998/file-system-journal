@@ -63,13 +63,11 @@ class EventHandler(pyinotify.ProcessEvent):
 		#if the filename is of the .txt extension
 		if name[-4:] == ".txt":
 
-			#editing the hidden file... more to be done on this later
-			#BELOW MUST BE UPDATED UPON IMP OF THE SAME METHODS IN ON_CREATE HIDDEN_FILE CREATION
+			#deleting the hidden file to allow proper reuse of the filename
 			hidden_file = event.pathname.replace(watched_dir, watched_dir_hidden)
 			hidden_file = hidden_file.replace(".txt", "-hidden-file.txt")
-			h = open(hidden_file, "a+")
-			h.close()
-			#ABOVE MUST BE UPDATED UPON IMP OF THE SAME METHODS IN ON_CREATE HIDDEN_FILE CREATION
+			#remove the hidden file
+			os.remove(hidden_file)
 
 			#from original ON_CREATE allowing user to open the filename-journal.txt to show changes
 			journal = event.pathname.replace(watched_dir, watched_dir_hidden)
