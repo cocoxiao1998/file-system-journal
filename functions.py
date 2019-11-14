@@ -103,6 +103,12 @@ class EventHandler(pyinotify.ProcessEvent):
 			f.close()
 
 	def process_IN_MODIFY(self, event):
+
+		# testing
+		print("In modified function. Path name: ", event.pathname)
+		name = os.path.basename(event.pathname)
+		print("File name: ", name)
+
 		# check that it is a text file that is being modified
 		if os.path.isfile(event.pathname):
 			if event.pathname[-4:] == ".txt":
@@ -133,12 +139,13 @@ class EventHandler(pyinotify.ProcessEvent):
 				journal = journal.replace(".txt", "-journal.txt")
 				j = open(journal, "a+")
 
-				text1 = f.readlines()
-				text2 = h.readlines()
+				f_text = f.readlines()
+				h_text = h.readlines()
+				h_length = len(h_text)
 
 				# comparing file text. "-" for unique to sequence 1
 				d = difflib.Differ()
-				diff = list(d.compare(text1, text2))
+				diff = list(d.compare(f_text, h_text))
 				diff = [line.rstrip("\n") for line in diff]
 
 				line_num = 1
@@ -149,8 +156,11 @@ class EventHandler(pyinotify.ProcessEvent):
 
 						# journal entry: removing and adding a line
 						line = line[2:]
-						remove_change = "(" + str(line_num) + " - " + ")"
-						j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + remove_change + "\n")
+						# check if the line exists in the hidden file
+						if h_length >= line_num:
+							remove_change = "(" + str(line_num) + " - " + ")"
+							j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + remove_change + "\n")
+
 						add_change = "(" + str(line_num) + " + '" + line + "')"
 						j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + add_change + "\n")
 
@@ -160,7 +170,7 @@ class EventHandler(pyinotify.ProcessEvent):
 				h.close()
 				h = open(hidden_file, "w")
 
-				for line in text1:
+				for line in f_text:
 					h.write(line)
 
 				# closing files
