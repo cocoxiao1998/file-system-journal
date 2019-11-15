@@ -103,12 +103,6 @@ class EventHandler(pyinotify.ProcessEvent):
 			f.close()
 
 	def process_IN_MODIFY(self, event):
-
-		# testing
-		print("In modified function. Path name: ", event.pathname)
-		name = os.path.basename(event.pathname)
-		print("File name: ", name)
-
 		# check that it is a text file that is being modified
 		if os.path.isfile(event.pathname):
 			if event.pathname[-4:] == ".txt":
