@@ -89,7 +89,7 @@ class EventHandler(pyinotify.ProcessEvent):
 			if day[0] == '0':
 				day = day[1]
 			#formatting the timestamp to match the ON_CREATE situation
-			timestamp = now.strftime("%a %b  " + day +" %H:%M:%S %Y")
+			timestamp = now.strftime("%a %b " + day +" %H:%M:%S %Y")
 
 			#closing the file for read-only purposes
 			f.close()
