@@ -19,7 +19,7 @@ class JournalGui:
         and give name and size to the window
         '''
         self.master = master
-        master.title(fileName)
+        master.title(journalName)
         master.geometry("500x300")
 
         # creates a frame
@@ -110,18 +110,19 @@ def process_creation(pln, m, pch):
 
 if __name__ == "__main__":
     # user input file name to be read and new file to be written to
-    fileName = raw_input("Enter journal filename: ")
-    uFile = open(fileName, 'r')
-    nFile = open(raw_input("Enter new name for file: "), 'a+')
+    journalName = raw_input("Enter journal filename: ")
+    jFile = open(".watched_dir_hidden/" + journalName, 'r')
+    newTxt = raw_input("Enter name for new text file: ")
+    nFile = open("watched_dir/" + newTxt, 'a+')
     
     # get the journal's lines and initialize a list
-    lines = uFile.read().splitlines()
+    lines = jFile.read().splitlines()
     linesLen = len(lines)
     linesA = []
 
     # Run JournalGui
     root = Tk()
-    gui = JournalGui(root)
+    JournalGui(root)
     root.mainloop()
 
     #The column number to get the line number, + or -, and changes made

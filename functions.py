@@ -4,12 +4,12 @@ import stat
 import pyinotify
 import time
 import datetime
+import difflib
 
 # class that contains methods of events
 class EventHandler(pyinotify.ProcessEvent):
 	def process_IN_CREATE(self, event):
-
-		# check if whatever is created is  a file, and then a text file
+		# check that it is a text file that is being created
 		if os.path.isfile(event.pathname):
 			if event.pathname[-4:] == ".txt":
 
@@ -51,8 +51,10 @@ class EventHandler(pyinotify.ProcessEvent):
 				j = open(journal, "a+")
 
 				j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " (CREATED)\n")
+				line_num = 1
 				for line in change:
-					j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " ('" + line + "')\n")
+					j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " (" + str(line_num) + " + '" + line + "')\n")
+					line_num += 1
 				j.close()
 
 	def process_IN_DELETE(self, event): #if any file or folder within the directory is observed being deleted
@@ -87,7 +89,7 @@ class EventHandler(pyinotify.ProcessEvent):
 			if day[0] == '0':
 				day = day[1]
 			#formatting the timestamp to match the ON_CREATE situation
-			timestamp = now.strftime("%a %b  " + day +" %H:%M:%S %Y")
+			timestamp = now.strftime("%a %b " + day +" %H:%M:%S %Y")
 
 			#closing the file for read-only purposes
 			f.close()
@@ -100,8 +102,79 @@ class EventHandler(pyinotify.ProcessEvent):
 			#close the file
 			f.close()
 
+	def process_IN_MODIFY(self, event):
+		# check that it is a text file that is being modified
+		if os.path.isfile(event.pathname):
+			if event.pathname[-4:] == ".txt":
+				# setting the metadata in variables first
+				# inode number
+				inode = os.lstat(event.pathname)[stat.ST_INO]
+
+				# filename
+				name = os.path.basename(event.pathname)
+
+				# permissions
+				permissions = os.stat(event.pathname)[stat.ST_MODE]
+				permissions = oct(permissions)[-3:]
+
+				# timestamp
+				timestamp = time.ctime(os.path.getmtime(event.pathname))
+
+
+				# getting changes
+				file = event.pathname
+				f = open(file, "r")
+
+				hidden_file = event.pathname.replace(watched_dir, watched_dir_hidden)
+				hidden_file = hidden_file.replace(".txt", "-hidden-file.txt")
+				h = open(hidden_file, "r")
+
+				journal = event.pathname.replace(watched_dir, watched_dir_hidden)
+				journal = journal.replace(".txt", "-journal.txt")
+				j = open(journal, "a+")
+
+				f_text = f.readlines()
+				h_text = h.readlines()
+				h_length = len(h_text)
+
+				# comparing file text. "-" for unique to sequence 1
+				d = difflib.Differ()
+				diff = list(d.compare(f_text, h_text))
+				diff = [line.rstrip("\n") for line in diff]
+
+				line_num = 1
+				for line in diff:
+					operator = line[0]
+					# checking if line is unique to file being modified
+					if operator == "-":
+
+						# journal entry: removing and adding a line
+						line = line[2:]
+						# check if the line exists in the hidden file
+						if h_length >= line_num:
+							remove_change = "(" + str(line_num) + " - " + ")"
+							j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + remove_change + "\n")
+
+						add_change = "(" + str(line_num) + " + '" + line + "')"
+						j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + add_change + "\n")
+
+					line_num += 1
+
+				# updating hidden file
+				h.close()
+				h = open(hidden_file, "w")
+
+				for line in f_text:
+					h.write(line)
+
+				# closing files
+				f.close()
+				h.close()
+				j.close()
+
+
 # the watched events (for now), add each event as you work on it
-mask = pyinotify.IN_CREATE | pyinotify.IN_DELETE
+mask = pyinotify.IN_CREATE | pyinotify.IN_DELETE | pyinotify.IN_MODIFY
 
 # creating watch manager object
 wm = pyinotify.WatchManager()
