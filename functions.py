@@ -144,8 +144,11 @@ class EventHandler(pyinotify.ProcessEvent):
 
 				line_num = 1
 				for line in diff:
-					operator = line[0]
+					#testing
+					print("Line %d: %s" % (line_num, line))
+
 					# checking if line is unique to file being modified
+					operator = line[0]
 					if operator == "-":
 
 						# journal entry: removing and adding a line
@@ -158,7 +161,9 @@ class EventHandler(pyinotify.ProcessEvent):
 						add_change = "(" + str(line_num) + " + '" + line + "')"
 						j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + add_change + "\n")
 
-					line_num += 1
+
+					if operator == " " or operator == "-":
+						line_num += 1
 
 				# updating hidden file
 				h.close()
