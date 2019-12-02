@@ -113,7 +113,7 @@ if __name__ == "__main__":
     journalName = raw_input("Enter journal filename: ")
     jFile = open("/home/coco/.watched_dir_hidden/" + journalName, 'r')
     newTxt = raw_input("Enter name for new text file: ")
-    nFile = open("/home/coco/watched_dir/" + newTxt, 'a+')
+    nFile = open("watched_dir/" + newTxt, 'a+')
 
     # get the journal's lines and initialize a list
     lines = jFile.read().splitlines()
