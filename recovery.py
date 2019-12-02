@@ -93,17 +93,20 @@ def process_creation(pln, m, pch):
         if (line != ''):
             if (m == '+'):
                 add = pch
-                newLine = line + pch
-                linesA.pop(pln_int)
-                linesA.insert(pln_int, newLine)
+                if (line == None):
+                    newLine = add
+                    linesA[pln_int] = newLine
+                else: 
+                    newLine = line + add
+                    linesA[pln_int] = newLine
             else:
-                linesA.pop(pln_int)
+                linesA[pln_int] = None
         else:
             linesA.insert(pln_int, pch)
     except IndexError:
         # inserts the change to the list
         if (pch == "\''"):
-            linesA.insert(pln_int, "")
+            linesA.insert(pln_int, None)
         else:
             linesA.insert(pln_int, pch)
 
@@ -112,6 +115,7 @@ if __name__ == "__main__":
     # user input file name to be read and new file to be written to
     journalName = raw_input("Enter journal filename: ")
     jFile = open(".watched_dir_hidden/" + journalName, 'r')
+
     newTxt = raw_input("Enter name for new text file: ")
     nFile = open("watched_dir/" + newTxt, 'a+')
     
@@ -169,6 +173,9 @@ if __name__ == "__main__":
 
     # writes to new text file
     for i in range(0, len(linesA)):
-        nFile.write(linesA[i] + "\n")
+        if (linesA[i] == None):
+            nFile.write("\n")
+        else:
+            nFile.write(linesA[i] + "\n")
 
     print("New file creation complete!")
