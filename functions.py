@@ -153,9 +153,6 @@ class EventHandler(pyinotify.ProcessEvent):
 						add_change = "(" + str(line_num) + " + '" + f_line + "')"
 						j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + add_change + "\n")
 
-						# testing purposes
-						print("Changed line %d: %s" % (line_num, f_line))
-
 					elif line_num > f_length:
 						remove_line = "(" + str(line_num) + " - " + ")"
 						j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + remove_line + "\n")
