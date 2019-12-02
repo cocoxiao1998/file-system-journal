@@ -5,6 +5,7 @@ import pyinotify
 import time
 import datetime
 import difflib
+from itertools import izip_longest
 
 # class that contains methods of events
 class EventHandler(pyinotify.ProcessEvent):
@@ -133,44 +134,44 @@ class EventHandler(pyinotify.ProcessEvent):
 				journal = journal.replace(".txt", "-journal.txt")
 				j = open(journal, "a+")
 
-				f_text = f.readlines()
-				h_text = h.readlines()
+				f_text = f.read().splitlines()
+				f_length = len(f_text)
+				h_text = h.read().splitlines()
 				h_length = len(h_text)
 
-				# comparing file text. "-" for unique to sequence 1
-				d = difflib.Differ()
-				diff = list(d.compare(f_text, h_text))
-				diff = [line.rstrip("\n") for line in diff]
+				# stripping the line returns
+				f_text = [line.rstrip("\n") for line in f_text]
+				h_text = [line.rstrip("\n") for line in h_text]
 
 				line_num = 1
-				for line in diff:
-					#testing
-					print("Line %d: %s" % (line_num, line))
+				for f_line, h_line in izip_longest(f_text, h_text):
 
-					# checking if line is unique to file being modified
-					operator = line[0]
-					if operator == "-":
-
-						# journal entry: removing and adding a line
-						line = line[2:]
-						# check if the line exists in the hidden file
-						if h_length >= line_num:
-							remove_change = "(" + str(line_num) + " - " + ")"
-							j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + remove_change + "\n")
-
-						add_change = "(" + str(line_num) + " + '" + line + "')"
+					if f_line != h_line and line_num <= f_length and line_num <= h_length:
+						# writing changes to the journal
+						remove_change = "(" + str(line_num) + " - " + ")"
+						j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + remove_change + "\n")
+						add_change = "(" + str(line_num) + " + '" + f_line + "')"
 						j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + add_change + "\n")
 
+						# testing purposes
+						print("Changed line %d: %s" % (line_num, f_line))
 
-					if operator == " " or operator == "-":
-						line_num += 1
+					elif line_num > f_length:
+						remove_line = "(" + str(line_num) + " - " + ")"
+						j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + remove_line + "\n")
+
+					elif line_num > h_length:
+						add_change = "(" + str(line_num) + " + '" + f_line + "')"
+						j.write(str(inode) + " " + name + " " + str(permissions) + " " + timestamp + " " + add_change + "\n")
+
+					line_num += 1
 
 				# updating hidden file
 				h.close()
 				h = open(hidden_file, "w")
 
 				for line in f_text:
-					h.write(line)
+					h.write(line + "\n")
 
 				# closing files
 				f.close()
