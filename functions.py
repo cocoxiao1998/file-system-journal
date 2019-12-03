@@ -183,14 +183,17 @@ wm = pyinotify.WatchManager()
 
 # adding the directory that will be watched and the watched events
 watched_dir = os.path.abspath("/home/coco/watched_dir")
-wm.add_watch(watched_dir, mask)
 
 # creating hidden dir with same path as watched dir
 watched_dir_hidden = "/home/coco/.watched_dir_hidden"
 try:
-	os.makedirs(watched_dir_hidden)
+	os.makedir(watched_dir)
+	os.makedir(watched_dir_hidden)
 except:
 	pass
+
+# adding the watched events
+wm.add_watch(watched_dir, mask)
 
 # creating the notifier object
 notifier = pyinotify.Notifier(wm, EventHandler())

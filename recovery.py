@@ -4,14 +4,14 @@ select = "" #Global variable to be used for both GUI and main
 
 '''
 Class to run the GUI that will take the user's selection from
-the displayed journal and create another text file based on 
+the displayed journal and create another text file based on
 the user's selection
 '''
 class JournalGui:
     def __init__(self, master):
         # function to get the selected item from GUI
         def create():
-            global select 
+            global select
             select = journal.curselection()
             master.destroy()
         '''
@@ -47,10 +47,10 @@ class JournalGui:
         # Button widget to confirm the user's selection
         button = Button(master, text = "Create", command = create)
         button.pack(side = BOTTOM)
-            
+
 '''
-process_lineNum function gets the line number the changes 
-were made and returns the line number without the left 
+process_lineNum function gets the line number the changes
+were made and returns the line number without the left
 parenthese
 '''
 def process_lineNum(ln):
@@ -60,7 +60,7 @@ def process_lineNum(ln):
     return numS
 
 '''
-process_changes function gets the changes that were made 
+process_changes function gets the changes that were made
 and returns only the content
 '''
 def process_changes(ch):
@@ -83,7 +83,7 @@ def process_creation(pln, m, pch):
     # convert processed line number to an int
     pln_int = int(pln)
     pln_int -= 1
-    
+
     try:
         '''
         if the index of the list contains something, add or
@@ -96,7 +96,7 @@ def process_creation(pln, m, pch):
                 if (line == None):
                     newLine = add
                     linesA[pln_int] = newLine
-                else: 
+                else:
                     newLine = line + add
                     linesA[pln_int] = newLine
             else:
@@ -114,11 +114,11 @@ def process_creation(pln, m, pch):
 if __name__ == "__main__":
     # user input file name to be read and new file to be written to
     journalName = raw_input("Enter journal filename: ")
-    jFile = open(".watched_dir_hidden/" + journalName, 'r')
+    jFile = open("/home/coco/.watched_dir_hidden/" + journalName, 'r')
 
     newTxt = raw_input("Enter name for new text file: ")
-    nFile = open("watched_dir/" + newTxt, 'a+')
-    
+    nFile = open("/home/coco/watched_dir/" + newTxt, 'a+')
+
     # get the journal's lines and initialize a list
     lines = jFile.read().splitlines()
     linesLen = len(lines)
