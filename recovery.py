@@ -1,4 +1,3 @@
-import os
 from Tkinter import * # Module for GUI
 
 select = "" #Global variable to be used for both GUI and main
@@ -69,6 +68,8 @@ def process_changes(ch):
 
     if (change == "\'')"):
         changeS = change[:-1]
+    elif (change == ")"):
+        changeS = change
     else:
         startC = change.find("\'")
         changeS = change[startC + 1: -2]
@@ -84,17 +85,26 @@ def process_creation(pln, m, pch):
     pln_int -= 1
 
     try:
-        # add the changes to list
-        if (m == '+'):
-            if (pch == "\''"):
-                linesA[pln_int] = None
+        '''
+        if the index of the list contains something, add or
+        delete a particular change to that index
+        '''
+        line = linesA[pln_int]
+        if (line != ''):
+            if (m == '+'):
+                add = pch
+                if (line == None):
+                    newLine = add
+                    linesA[pln_int] = newLine
+                else:
+                    newLine = line + add
+                    linesA[pln_int] = newLine
             else:
-                linesA[pln_int] = pch
-        # when m == '-' change index list to none
+                linesA[pln_int] = None
         else:
-            linesA[pln_int] = None
+            linesA.insert(pln_int, pch)
     except IndexError:
-        # inserts the change to the list when index out of range
+        # inserts the change to the list
         if (pch == "\''"):
             linesA.insert(pln_int, None)
         else:
@@ -102,29 +112,17 @@ def process_creation(pln, m, pch):
 
 
 if __name__ == "__main__":
-    # user input file name to be read
+    # user input file name to be read and new file to be written to
     journalName = raw_input("Enter journal filename: ")
-    ext = journalName.find('-journal.txt')
+    jFile = open("/home/coco/.watched_dir_hidden/" + journalName, 'r')
 
-    # check to see if file exist
-    # and makes sure the file extension is '-journal.txt'
-    while (os.path.exists(".watched_dir_hidden/" + journalName)
-            == False or ext == -1):
-        print(journalName, " invalid journal name")
-        journalName = raw_input("Enter journal filename: ")
-        ext = journalName.find('-journal.txt')
-
-    # user input file name to be read
-    # and new file to be written to
-    jFile = open(".watched_dir_hidden/" + journalName, 'r')
     newTxt = raw_input("Enter name for new text file: ")
-    nFile = open("watched_dir/" + newTxt, 'a+')
+    nFile = open("/zhome/coco/watched_dir/" + newTxt, 'a+')
 
-    # get the joural's lines and initialize two lists
+    # get the journal's lines and initialize a list
     lines = jFile.read().splitlines()
     linesLen = len(lines)
     linesA = []
-    linesB = []
 
     # Run JournalGui
     root = Tk()
@@ -132,68 +130,52 @@ if __name__ == "__main__":
     root.mainloop()
 
     #The column number to get the line number, + or -, and changes made
-    lineNum = 0
-    mod = 1
-    changes = 2
-    # Gets the time column of original journal
-    time = 6
+    lineNum = 8
+    mod = 9
+    changes = 10
+    s = -1 # variable use to stop creating the file
 
-    try:
-        # From the line number user selected
-        # add the entries to list linesB
-        selectCh = select[0] + 1
-        for x in range(selectCh):
-            linesB.append(lines[x])
-
-        # get the time from last entry from linesB
-        selectedTime = linesB[-1].split()[time]
-
-        '''
-        go through the rest of the journal
-        to find entries that match the time from
-        linesB. Add the times that matches to linesB
-        and break when they don't
-        '''
-        for y in range(selectCh, linesLen):
-            timeCol = lines[y].split()[time]
-            if (timeCol == selectedTime):
-                linesB.append(lines[y])
-            else:
-                break
-
-        linesBLen = len(linesB) # get length of linesB
-
-        # Process the changes made and add to list linesA
-        for x in range(linesBLen):
-            startChange = linesB[x].find("(")
-            newChange = linesB[x][startChange:]
-
-            if (newChange == "(CREATED)" or newChange == "(~)"):
+    # Get the line number column and calls the 3 functions
+    for x in lines:
+        s += 1
+        if (s <= select[0]):
+            # Ignores the two strings and continue to next line
+            ln = x.split()[lineNum]
+            if (ln == '(CREATED)' or ln == '(~)'):
                 continue
             else:
-                ln = newChange.split()[lineNum]
                 pln = process_lineNum(ln)
 
-            m = newChange.split()[mod]
+            m = x.split()[mod] # gets the + or -
 
-            startCh = newChange.find("\'")
-            if (startCh != -1):
-                ch = newChange[startCh:]
+            # Gets the changes made by user
+            ch = x.split()[changes]
+            if (ch == "\'')"):
                 pch = process_changes(ch)
+            elif (ch == ")"):
+                pch = process_changes(ch)
+            # Since the file is read by delimiting space
+            # Need to make sure all changes are included
+            elif ("\')" not in ch):
+                nString = ch
+                c = changes
+                while ("\')" not in ch):
+                    c += 1
+                    ch = x.split()[c]
+                    nString = nString + ' ' + ch
+                pch = process_changes(nString)
             else:
-                pch = ")"
+                pch = process_changes(ch)
 
             process_creation(pln, m, pch)
+        else:
+            break
 
-        # writes to new text file from list linesA
-        for i in range(0, len(linesA)):
-            if (linesA[i] == None):
-                nFile.write("\n")
-            else:
-                nFile.write(linesA[i] + "\n")
+    # writes to new text file
+    for i in range(0, len(linesA)):
+        if (linesA[i] == None):
+            nFile.write("\n")
+        else:
+            nFile.write(linesA[i] + "\n")
 
-        jFile.close()
-        nFile.close()
-        print("New file creation complete!")
-    except:
-        print("Selection was not made")
+    print("New file creation complete!")
