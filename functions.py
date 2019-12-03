@@ -183,9 +183,9 @@ wm = pyinotify.WatchManager()
 
 try:
 	# adding the directory that will be watched and the watched events
-	watched_dir = os.path.abspath("home/coco/watched_dir")
+	watched_dir = os.path.abspath("/home/coco/watched_dir")
 	# creating hidden dir with same path as watched dir
-	watched_dir_hidden = "home/coco/.watched_dir_hidden"
+	watched_dir_hidden = "/home/coco/.watched_dir_hidden"
 except:
 	print("The watched directory does not exist")
 	exit()
