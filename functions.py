@@ -1,5 +1,4 @@
 import os
-import errno
 import stat
 import pyinotify
 import time
@@ -9,7 +8,7 @@ from itertools import izip_longest
 # class that contains methods of events
 class EventHandler(pyinotify.ProcessEvent):
 	def process_IN_CREATE(self, event):
-		# check that it is a text file that is being created
+		# check if whatever is created is a file and if it is a .txt file
 		if os.path.isfile(event.pathname):
 			if event.pathname[-4:] == ".txt":
 
@@ -25,7 +24,11 @@ class EventHandler(pyinotify.ProcessEvent):
 				permissions = oct(permissions)[-3:]
 
 				# timestamp
-				timestamp = time.ctime(os.path.getctime(event.pathname))
+				now = datetime.datetime.now()
+				day = now.strftime("%d")
+				if day[0] == '0':
+					day = day[1]
+				timestamp = now.strftime("%a %b " + day +" %H:%M:%S %Y")
 
 				# getting change: will set the changes to "line #, +/-, content"
 				file = event.pathname
@@ -65,42 +68,46 @@ class EventHandler(pyinotify.ProcessEvent):
 		#if the filename is of the .txt extension
 		if name[-4:] == ".txt":
 
-			#deleting the hidden file to allow proper reuse of the filename
+			#indicating what the name of the hidden file should be
 			hidden_file = event.pathname.replace(watched_dir, watched_dir_hidden)
 			hidden_file = hidden_file.replace(".txt", "-hidden-file.txt")
-			#remove the hidden file
-			os.remove(hidden_file)
 
-			#from original ON_CREATE allowing user to open the filename-journal.txt to show changes
-			journal = event.pathname.replace(watched_dir, watched_dir_hidden)
-			journal = journal.replace(".txt", "-journal.txt")
+			#if the file journal and file copy both exist, delete the hidden_file and edit the journal
+			if os.path.isfile(hidden_file):
+				os.remove(hidden_file) #remove the hidden file
 
-			#open file journal explicitly for reading
-			f = open(journal, "r")
-			#since the file is deleted the below code will get the information about the file from the file journal
-			contents = f.readlines()[-1] #read only the last line of the journal for information
-			node = contents.split(' ',1)[0] #extracts the inode id of the file just deleted
-			permissions = contents.split(' ', 3)[2] #extracts the permissions of the file just deleted
-			now = datetime.datetime.now() #records current time to variable
+				#from original ON_CREATE allowing user to open the filename-journal.txt to show changes
+				journal = event.pathname.replace(watched_dir, watched_dir_hidden)
+				journal = journal.replace(".txt", "-journal.txt")
 
-			#formatting the day to not contain a zero if the day is a single digit
-			#please watch this part of the code
-			day = now.strftime("%d")
-			if day[0] == '0':
-				day = day[1]
-			#formatting the timestamp to match the ON_CREATE situation
-			timestamp = now.strftime("%a %b " + day +" %H:%M:%S %Y")
+				#open file journal explicitly for reading
+				f = open(journal, "r")
+				#since the file is deleted the below code will get the information about the file from the file journal
+				contents = f.readlines()[-1] #read only the last line of the journal for information
+				node = contents.split(' ',1)[0] #extracts the inode id of the file just deleted
+				permissions = contents.split(' ', 3)[2] #extracts the permissions of the file just deleted
+				now = datetime.datetime.now() #records current time to variable
 
-			#closing the file for read-only purposes
-			f.close()
+				#formatting the day to not contain a zero if the day is a single digit
+				#please watch this part of the code
+				day = now.strftime("%d")
+				if day[0] == '0':
+					day = day[1]
+				#formatting the timestamp to match the ON_CREATE situation
+				timestamp = now.strftime("%a %b " + day +" %H:%M:%S %Y")
 
-			#open file journal explicitly for appending
-			f = open(journal, "a+")
-			#formatting write output
-			f.write(node + " " + name + " " + permissions + " " + timestamp + " (~)\n")
+				#closing the file for read-only purposes
+				f.close()
 
-			#close the file
-			f.close()
+				#open file journal explicitly for appending
+				f = open(journal, "a+")
+				#formatting write output
+				f.write(node + " " + name + " " + permissions + " " + timestamp + " (~)\n")
+
+				#close the file
+				f.close()
+			else:
+				print("Filename \"" + name + "\" was detected as being removed from the below watched directory: \n" + watched_dir + ".\nNo Journal or Hidden Copy was found for this file, thus no changes have been recorded.\nPlease ensure the script is running before working in your watched directory.")
 
 	def process_IN_MODIFY(self, event):
 		# check that it is a text file that is being modified
@@ -118,7 +125,11 @@ class EventHandler(pyinotify.ProcessEvent):
 				permissions = oct(permissions)[-3:]
 
 				# timestamp
-				timestamp = time.ctime(os.path.getmtime(event.pathname))
+				now = datetime.datetime.now()
+				day = now.strftime("%d")
+				if day[0] == '0':
+					day = day[1]
+				timestamp = now.strftime("%a %b " + day +" %H:%M:%S %Y")
 
 
 				# getting changes
