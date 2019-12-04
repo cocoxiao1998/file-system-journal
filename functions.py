@@ -31,7 +31,7 @@ class EventHandler(pyinotify.ProcessEvent):
 				day = now.strftime("%d")
 				if day[0] == '0':
 					day = day[1]
-				timestamp = now.strftime("%a %b " + day +" %H:%M:%S:%f %Y")
+				timestamp = now.strftime("%a %b " + day +" %H:%M:%S %Y")
 				#the original timestamp is below
 				#timestamp = time.ctime(os.path.getctime(event.pathname)) #previous method replaced with above to avoid CREATE and ATTRIB collisions
 				#END ABOVE CHANGES
@@ -100,7 +100,7 @@ class EventHandler(pyinotify.ProcessEvent):
 				if day[0] == '0':
 					day = day[1]
 				#formatting the timestamp to match the ON_CREATE situation
-				timestamp = now.strftime("%a %b " + day +" %H:%M:%S:%f %Y")
+				timestamp = now.strftime("%a %b " + day +" %H:%M:%S %Y")
 
 				#closing the file for read-only purposes
 				f.close()
@@ -123,9 +123,9 @@ wm = pyinotify.WatchManager()
 
 #saving the file directory names that will be watched to variables
 watched_dir = os.path.abspath("Desktop/watched_dir")
-watched_dir_hidden = "Desktop/watched_dir/.watched_dir_hidden"
+watched_dir_hidden = "Desktop/.watched_dir_hidden"
 
-#if the above files have not yet been created, do so:
+#if the above directories have not yet been created, do so:
 try:
 	os.makedirs(watched_dir_hidden)#makedirs makes all parent directories automatically
 except:
