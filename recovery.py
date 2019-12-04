@@ -106,9 +106,14 @@ if __name__ == "__main__":
     journalName = raw_input("Enter journal filename: ")
     ext = journalName.find('-journal.txt')
 
+    # directory paths with "/" in order to concatenate with filenames
+    home = os.path.expanduser("~")
+    watched_dir = ("%s/watched_dir/" % home)
+    watched_dir_hidden = ("%s/.watched_dir_hidden/" % home)
+
     # check to see if file exist
     # and makes sure the file extension is '-journal.txt'
-    while (os.path.exists("/home/coco/.watched_dir_hidden/" + journalName)
+    while (os.path.exists(watched_dir_hidden + journalName)
             == False or ext == -1):
         print(journalName, " invalid journal name")
         journalName = raw_input("Enter journal filename: ")
@@ -116,9 +121,9 @@ if __name__ == "__main__":
 
     # user input file name to be read
     # and new file to be written to
-    jFile = open("/home/coco/.watched_dir_hidden/" + journalName, 'r')
+    jFile = open(watched_dir_hidden + journalName, 'r')
     newTxt = raw_input("Enter name for new text file: ")
-    nFile = open("/home/coco/watched_dir/" + newTxt, 'a+')
+    nFile = open(watched_dir + newTxt, 'a+')
 
     # get the joural's lines and initialize two lists
     lines = jFile.read().splitlines()

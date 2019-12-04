@@ -192,14 +192,20 @@ mask = pyinotify.IN_CREATE | pyinotify.IN_DELETE | pyinotify.IN_MODIFY
 # creating watch manager object
 wm = pyinotify.WatchManager()
 
+home = os.path.expanduser("~")
+watched_dir = ("%s/watched_dir" % home)
+watched_dir_hidden = ("%s/.watched_dir_hidden" % home)
+
+# will create a dirs if they don't exist
 try:
-	# adding the directory that will be watched and the watched events
-	watched_dir = os.path.abspath("/home/coco/watched_dir")
-	# creating hidden dir with same path as watched dir
-	watched_dir_hidden = "/home/coco/.watched_dir_hidden"
+	os.makedirs(watched_dir)
 except:
-	print("The watched directory does not exist")
-	exit()
+	pass
+
+try:
+	os.makedirs(watched_dir_hidden)
+except:
+	pass
 
 # adding the watched events
 wm.add_watch(watched_dir, mask)
