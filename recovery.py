@@ -115,7 +115,7 @@ if __name__ == "__main__":
     # and makes sure the file extension is '-journal.txt'
     while (os.path.exists(watched_dir_hidden + journalName)
             == False or ext == -1):
-        print(journalName, " invalid journal name")
+        print('The journal name "%s" that you entered does not exist or is invalid' % journalName)
         journalName = raw_input("Enter journal filename: ")
         ext = journalName.find('-journal.txt')
 
@@ -123,7 +123,11 @@ if __name__ == "__main__":
     # and new file to be written to
     jFile = open(watched_dir_hidden + journalName, 'r')
     newTxt = raw_input("Enter name for new text file: ")
-    nFile = open(watched_dir + newTxt, 'a+')
+    # adds .txt if the extension is not there
+    if newTxt[-4:] != ".txt":
+        newTxt += ".txt"
+    print(newTxt)
+    nFile = open(watched_dir + newTxt, 'w+')
 
     # get the joural's lines and initialize two lists
     lines = jFile.read().splitlines()
